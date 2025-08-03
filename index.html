@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Raja Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #333;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    .intro {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #fff;
+      animation: fadeOut 2.5s forwards;
+    }
+    .intro img { width: 100px; }
+    .intro h1 { margin: 20px 0 10px; font-size: 28px; font-weight: bold; color: #333; }
+    .intro p { color: #777; }
+    @keyframes fadeOut {
+      0% { opacity: 1; z-index: 2; }
+      90% { opacity: 1; }
+      100% { opacity: 0; z-index: -1; display: none; }
+    }
+
+    .calculator-container {
+      max-width: 400px;
+      margin: 20px auto;
+      background-color: #222;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .screen {
+      width: 100%;
+      padding: 15px;
+      font-size: 32px;
+      text-align: right;
+      border: none;
+      background-color: #111;
+      margin-bottom: 15px;
+      color: #fff;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    button {
+      padding: 20px;
+      font-size: 20px;
+      border: none;
+      border-radius: 12px;
+      background-color: #444;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover { background-color: #555; }
+    button.operator { background-color: #f57c00; }
+    button.operator:hover { background-color: #ff8f00; }
+
+    .history-button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      background-color: #607d8b;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .history-popup {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 360px;
+      max-height: 60%;
+      overflow-y: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: none;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .history-popup h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: #f57c00;
+    }
+
+    .history-entry {
+      background: #222;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .history-entry small {
+      color: #aaa;
+    }
+
+    .close-history {
+      background: #c62828;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      float: right;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .delete-btn {
+      float: right;
+      background: #d32f2f;
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+      margin: 30px 0;
+      font-size: 14px;
+      color: #777;
+    }
+
+    @media (max-width: 450px) {
+      .calculator-container { margin: 10px; }
+      button { padding: 16px; font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div class="intro" id="intro">
+    <img src="https://i.postimg.cc/CLTMygGn/icon.png" alt="Calculator Icon">
+    <h1>Raja Calculator</h1>
+    <p>Created by Raja Nasir</p>
+  </div>
+
+  <!-- Calculator -->
+  <div class="calculator-container">
+    <input type="text" id="screen" class="screen" disabled>
+    <div class="buttons">
+      <button onclick="clearScreen()" style="background-color: #e57373;">Clear</button>
+      <button onclick="backspace()" style="background-color: #64b5f6;">⌫</button>
+      <button onclick="press('(')">(</button>
+      <button onclick="press(')')">)</button>
+      <button onclick="press('7')">7</button>
+      <button onclick="press('8')">8</button>
+      <button onclick="press('9')">9</button>
+      <button class="operator" onclick="press('÷')">÷</button>
+      <button onclick="press('4')">4</button>
+      <button onclick="press('5')">5</button>
+      <button onclick="press('6')">6</button>
+      <button class="operator" onclick="press('×')">×</button>
+      <button onclick="press('1')">1</button>
+      <button onclick="press('2')">2</button>
+      <button onclick="press('3')">3</button>
+      <button class="operator" onclick="press('-')">−</button>
+      <button onclick="press('0')">0</button>
+      <button onclick="press('.')">.</button>
+      <button onclick="calculate()">=</button>
+      <button class="operator" onclick="press('+')">+</button>
+    </div>
+    <button class="history-button" onclick="toggleHistory()">📜 View History</button>
+  </div>
+
+  <!-- History Panel -->
+  <div class="history-popup" id="historyPopup">
+    <button class="close-history" onclick="toggleHistory()">Close</button>
+    <h2>Calculation History</h2>
+    <div id="historyList"></div>
+  </div>
+
+  <footer>Created by <strong>RAJA NASIR</strong></footer>
+
+  <!-- Sounds -->
+  <audio id="soundClick" src="https://raw.githubusercontent.com/Rajanasir229/Click.mp3/main/Click.mp3" preload="auto"></audio>
+  <audio id="soundEqual" src="https://raw.githubusercontent.com/Rajanasir229/Click.mp3/main/Click.mp3" preload="auto"></audio>
+  <audio id="soundClear" src="https://raw.githubusercontent.com/Rajanasir229/Click.mp3/main/Click.mp3" preload="auto"></audio>
+  <audio id="soundError" src="https://raw.githubusercontent.com/Rajanasir229/Error.mp3/main/Error.mp3" preload="auto"></audio>
+
+  <script>
+    setTimeout(() => {
+      document.getElementById("intro").style.display = "none";
+    }, 2500);
+
+    const screen = document.getElementById("screen");
+    const historyList = document.getElementById("historyList");
+
+    function play(id) {
+      const sound = document.getElementById(id);
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
+      }
+    }
+
+    function press(val) {
+      play("soundClick");
+      const lastChar = screen.value.slice(-1);
+      if (
+        (val === '(' && /[0-9)]$/.test(lastChar)) ||
+        (/[0-9]/.test(val) && lastChar === ')')
+      ) {
+        screen.value += '×' + val;
+      } else {
+        screen.value += val;
+      }
+    }
+
+    function clearScreen() {
+      play("soundClear");
+      screen.value = "";
+    }
+
+    function backspace() {
+      play("soundClick");
+      screen.value = screen.value.slice(0, -1);
+    }
+
+    function calculate() {
+      try {
+        let expression = screen.value
+          .replace(/÷/g, '/')
+          .replace(/×/g, '*')
+          .replace(/−/g, '-');
+
+        if (/[\+\-\*\/]{2,}/.test(expression)) throw "Syntax Error";
+
+        let result = eval(expression);
+        if (result === undefined || isNaN(result)) throw "Invalid";
+        screen.value = result;
+        play("soundEqual");
+        saveHistory(expression, result);
+      } catch {
+        screen.value = "Error";
+        play("soundError");
+        setTimeout(() => { screen.value = ""; }, 1000);
+      }
+    }
+
+    function toggleHistory() {
+      const popup = document.getElementById("historyPopup");
+      popup.style.display = popup.style.display === "block" ? "none" : "block";
+    }
+
+    function saveHistory(expression, result) {
+      const entry = document.createElement("div");
+      entry.className = "history-entry";
+      const now = new Date().toLocaleString();
+      entry.innerHTML = `<small>${now}</small><br>${expression} = <strong>${result}</strong>
+        <button class="delete-btn" onclick="this.parentElement.remove()">Delete</button>`;
+      historyList.prepend(entry);
+    }
+  </script>
+</body>
+</html>
